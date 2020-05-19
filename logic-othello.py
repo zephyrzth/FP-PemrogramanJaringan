@@ -4,6 +4,8 @@
 
 class Othello:
     board = [[0 for i in range(8)] for j in range(8)]
+    whitePieces = 0
+    blackPieces = 0
     
     def __init__(self):
         # kondisi pertama kali permainan
@@ -11,6 +13,16 @@ class Othello:
         Othello.board[4][3] = Othello.board[3][4] = 1
         Othello.board[3][3] = Othello.board[4][4] = 2
         self.turn = 1
+
+    def countPieces(self):
+        Othello.whitePieces = 0
+        Othello.blackPieces = 0
+        for i in range(8):
+            for j in range(8):
+                if(Othello.board[i][j] == 1):
+                    Othello.whitePieces += 1
+                elif(Othello.board[i][j] == 2):
+                    Othello.blackPieces += 1
 
     def displayBoard(self):
         # GUI mungkin ngubah disini nantinya
