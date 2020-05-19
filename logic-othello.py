@@ -20,9 +20,9 @@ class Othello:
         for i in range(8):
             for j in range(8):
                 if(Othello.board[i][j] == 1):
-                    Othello.whitePieces += 1
-                elif(Othello.board[i][j] == 2):
                     Othello.blackPieces += 1
+                elif(Othello.board[i][j] == 2):
+                    Othello.whitePieces += 1
 
     def displayBoard(self):
         # GUI mungkin ngubah disini nantinya
@@ -49,8 +49,10 @@ class Othello:
         # Sebagai contoh tadi 1 2 2 2 1 maka akan berubah menjadi 1 1 1 1 1
         if self.checkBoard():
             Othello.board[int(self.positionx)][int(self.positiony)] = self.turn
+            return True
         else:
-            print("\nSorry, your move violate the rules\n")
+            print("\nSorry, your move violate the rules, Please try another move!\n")
+            return False
 
     def isOnBoard(self, x, y):
         # Fungsi untuk mengecek apakah koordinat x,y berada dalam papan
@@ -160,7 +162,9 @@ class Othello:
             diskToFlip = []
             for x in range(1, 8):
                 # Cek apakah ada bidak ditetangganya dan apakah masih dalam boundary
-                if Othello.board[int(self.positionx)-x][int(self.positiony)+x] == 0 or not self.isOnBoard(int(self.positionx)-x, int(self.positiony)+x):
+                if not self.isOnBoard(int(self.positionx)-x, int(self.positiony)+x):
+                    break
+                elif Othello.board[int(self.positionx)-x][int(self.positiony)+x] == 0:
                     break
                 # Cek apakah menemukan bidak yang sama
                 elif Othello.board[int(self.positionx)-x][int(self.positiony)+x] == self.turn:
@@ -175,7 +179,9 @@ class Othello:
             diskToFlip = []
             for x in range(1, 8):
                 # Cek apakah ada bidak ditetangganya dan apakah masih dalam boudnary
-                if Othello.board[int(self.positionx)+x][int(self.positiony)-x] == 0 or not self.isOnBoard(int(self.positionx)+x, int(self.positiony)-x):
+                if not self.isOnBoard(int(self.positionx)+x, int(self.positiony)-x):
+                    break
+                elif Othello.board[int(self.positionx)+x][int(self.positiony)-x] == 0:
                     break
                 # Cek apakah menemukan bidak yang sama
                 elif Othello.board[int(self.positionx)+x][int(self.positiony)-x] == self.turn:
@@ -210,9 +216,10 @@ class Othello:
 
     def printResult(self):
         # Fungsi untuk print hasil akhir game
+        self.displayBoard()
         self.countPieces()
-        print("\nBlack Pieces (Player 1): " + self.blackPieces)
-        print("\nWhite Pieces (Player 2): " + self.whitePieces)
+        print("\nBlack Pieces (Player 1): " + str(self.blackPieces))
+        print("\nWhite Pieces (Player 2): " + str(self.whitePieces))
         if self.blackPieces > self.whitePieces:
             print("\nCongratulations!!! Player 1 win!\n")
         elif self.whitePieces > self.blackPieces:
@@ -222,19 +229,24 @@ class Othello:
     
     def play(self):
         while(True):
-            self.displayBoard()
-            self.positionx=input(">>Player 1 turn, choose x coordinate: ")
-            self.positiony=input(">>Player 1 turn, choose y coordinate: ")
-            self.fillBoard()
-            if self.isFinished:
+            while(True):
+                self.displayBoard()
+                self.positionx=input(">>Player 1 (Black) turn, choose x coordinate: ")
+                self.positiony=input(">>Player 1 (Black) turn, choose y coordinate: ")
+                if self.fillBoard():
+                    break            
+            # print(self.isFinished)
+            if self.isFinished():
                 self.printResult()
                 break
             self.turn = 2
-            self.displayBoard()
-            self.positionx=input(">>Player 2 turn, choose x coordinate: ")
-            self.positiony=input(">>Player 2 turn, choose x coordinate: ")
-            self.fillBoard()
-            if self.isFinished:
+            while(True):
+                self.displayBoard()
+                self.positionx=input(">>Player 2 (White) turn, choose x coordinate: ")
+                self.positiony=input(">>Player 2 (White) turn, choose x coordinate: ")
+                if self.fillBoard():
+                    break
+            if self.isFinished():
                 self.printResult()
                 break
             self.turn = 1
