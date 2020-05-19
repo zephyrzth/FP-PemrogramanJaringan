@@ -195,10 +195,30 @@ class Othello:
 
     def updateBoard(self, diskToFlip):
         # Fungsi untuk update board
-        print("update board")
         # update koordinat board menjadi warna bidak player sekarang
         for x in diskToFlip:
             Othello.board[x[0]][x[1]] = self.turn
+
+    def isFinished(self):
+        # Fungsi untuk mengecek apakah semua board sudah terisi penuh
+        for i in range(8):
+            for j in range(8):
+                # Jika ada kotak yang masih kosong maka belum selesai gamenya
+                if Othello.board[i][j] == 0:
+                    return False
+        return True
+
+    def printResult(self):
+        # Fungsi untuk print hasil akhir game
+        self.countPieces()
+        print("\nBlack Pieces (Player 1): " + self.blackPieces)
+        print("\nWhite Pieces (Player 2): " + self.whitePieces)
+        if self.blackPieces > self.whitePieces:
+            print("\nCongratulations!!! Player 1 win!\n")
+        elif self.whitePieces > self.blackPieces:
+            print("\nCongratulations!!! Player 2 win!\n")
+        else:
+            print("\nCongratulations!!! The result is draw!\n")
     
     def play(self):
         while(True):
@@ -206,11 +226,17 @@ class Othello:
             self.positionx=input(">>Player 1 turn, choose x coordinate: ")
             self.positiony=input(">>Player 1 turn, choose y coordinate: ")
             self.fillBoard()
-            self.displayBoard()
+            if self.isFinished:
+                self.printResult()
+                break
             self.turn = 2
+            self.displayBoard()
             self.positionx=input(">>Player 2 turn, choose x coordinate: ")
             self.positiony=input(">>Player 2 turn, choose x coordinate: ")
             self.fillBoard()
+            if self.isFinished:
+                self.printResult()
+                break
             self.turn = 1
 
 ot = Othello()
