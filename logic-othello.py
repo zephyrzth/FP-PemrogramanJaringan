@@ -47,7 +47,7 @@ class Othello:
         # Misal harus 1 2 2 2 (maka player 1 bisa naruh di samping bidak angka 2 tersebut)
         # Kalau nomor 2 sudah terpenuhi, maka semua bidak diantara 1 tersebut akan menjadi sama warnanya
         # Sebagai contoh tadi 1 2 2 2 1 maka akan berubah menjadi 1 1 1 1 1
-        if self.checkBoard():
+        if self.isValidMove(int(self.positionx), int(self.positiony)):
             Othello.board[int(self.positionx)][int(self.positiony)] = self.turn
             return True
         else:
@@ -58,146 +58,59 @@ class Othello:
         # Fungsi untuk mengecek apakah koordinat x,y berada dalam papan
         return x >= 0 and x <= 7 and y >= 0 and y <=7
 
-    def checkBoard(self):
+    def isEmptyBoard(self, x, y):
+        # Fungsi untuk mengecek apakah koordinat x,y kosong atau tidak
+        return Othello.board[x][y] == 0
+
+    def isEnemyDisk(self, x, y):
+        # Fungsi untuk mengecek apakah koordinat x,y bidak lawan atau tidak
+        return Othello.board[x][y] != self.turn
+
+    def isValidMove(self, x, y):
         # Fungsi untuk mengecek apakah valid dan apakah ada bidak yang perlu dialik warnanya
         # Jika bidak yang dipilih diluar papan
         if not self.isOnBoard(int(self.positionx), int(self.positiony)):
             return False
-        # Jika papan yang dipilih masih kosong
-        if Othello.board[int(self.positionx)][int(self.positiony)] == 0:
-            isValid = 0
-            # Mengecek bagian atas
-            diskToFlip = []
-            for x in range(int(self.positionx)-1, -1, -1):
-                # Cek apakah ada bidak ditetangganya
-                if Othello.board[x][int(self.positiony)] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[x][int(self.positiony)] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([x, int(self.positiony)])
-            # Mengecek bagian bawah
-            diskToFlip = []
-            for x in range(int(self.positionx)+1, 8):
-                # Cek apakah ada bidak ditetangganya
-                if Othello.board[x][int(self.positiony)] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[x][int(self.positiony)] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([x, int(self.positiony)])
-            # Mengecek bagian kiri
-            diskToFlip = []
-            for x in range(int(self.positiony)-1, -1, -1):
-                # Cek apakah ada bidak ditetangganya
-                if Othello.board[int(self.positionx)][x] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[int(self.positionx)][x] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([int(self.positionx), x])
-            # Mengecek bagian kanan
-            diskToFlip = []
-            for x in range(int(self.positiony)+1, 8):
-                # Cek apakah ada bidak ditetangganya
-                if Othello.board[int(self.positionx)][x] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[int(self.positionx)][x] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([int(self.positionx), x])
-            # Mengecek bagian diagonal kiri atas
-            diskToFlip = []
-            diagonalBoundary = min(int(self.positionx), int(self.positiony))
-            for x in range(1, diagonalBoundary+1):
-                # Cek apakah ada bidak ditetangganya
-                if Othello.board[int(self.positionx)-x][int(self.positiony)-x] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[int(self.positionx)-x][int(self.positiony)-x] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([int(self.positionx)-x, int(self.positiony)-x])
-            # Mengecek bagian diagonal kanan bawah
-            diskToFlip = []
-            diagonalBoundary = 7 - max(int(self.positionx), int(self.positiony))
-            for x in range(1, diagonalBoundary+1):
-                # Cek apakah ada bidak ditetangganya
-                if Othello.board[int(self.positionx)+x][int(self.positiony)+x] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[int(self.positionx)+x][int(self.positiony)+x] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([int(self.positionx)+x, int(self.positiony)+x])
-            # Mengecek bagian diagonal kanan atas
-            diskToFlip = []
-            for x in range(1, 8):
-                # Cek apakah ada bidak ditetangganya dan apakah masih dalam boundary
-                if not self.isOnBoard(int(self.positionx)-x, int(self.positiony)+x):
-                    break
-                elif Othello.board[int(self.positionx)-x][int(self.positiony)+x] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[int(self.positionx)-x][int(self.positiony)+x] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([int(self.positionx)-x, int(self.positiony)+x])
-            # Mengecek bagian diagonal kiri bawah
-            diskToFlip = []
-            for x in range(1, 8):
-                # Cek apakah ada bidak ditetangganya dan apakah masih dalam boudnary
-                if not self.isOnBoard(int(self.positionx)+x, int(self.positiony)-x):
-                    break
-                elif Othello.board[int(self.positionx)+x][int(self.positiony)-x] == 0:
-                    break
-                # Cek apakah menemukan bidak yang sama
-                elif Othello.board[int(self.positionx)+x][int(self.positiony)-x] == self.turn:
-                    if diskToFlip:
-                        isValid = 1
-                        self.updateBoard(diskToFlip)
-                    break
-                else:
-                    # masukkan koordinat dari potensi bidak yang mungkin diganti warna
-                    diskToFlip.append([int(self.positionx)+x, int(self.positiony)-x])
-            if isValid == 1:
-                return True
-            else:
-                return False
-        else:
-            return False  
+        isValid = False
+        # Jika kotak yang dipilih masih kosong   
+        if self.isEmptyBoard(x, y):
+            # Untuk mengecek 8 arah
+            ARRAY_DIRECTION=[
+                [-1 ,  0],  # Atas
+                [ 1 ,  0],  # Bawah
+                [ 0 ,  1],  # Kanan
+                [ 0 , -1],  # Kiri
+                [-1 ,  1],  # Kanan Atas
+                [-1 , -1],  # Kiri Atas
+                [ 1 ,  1],  # Kanan Bawah
+                [ 1 , -1],  # Kiri Bawah
+            ]
+            allDisktoFlip = []
+
+            for direction in ARRAY_DIRECTION:
+
+                disktoflip = []
+                iter_x = x+direction[0]
+                iter_y = y+direction[1]
+                # Lakukan looping selama pengecekan masih berada di dalam border
+                while self.isOnBoard(iter_x, iter_y):
+                    # Jika papan yang dipilih masih kosong
+                    if self.isEmptyBoard(iter_x, iter_y):
+                        break
+                    # Cek apakah bidak tetangganya adalah lawan
+                    elif(self.isEnemyDisk(iter_x, iter_y)):
+                        disktoflip.append([iter_x, iter_y])
+                    else:
+                        if(disktoflip):
+                            isValid = True
+                            for diskPos in disktoflip:
+                                allDisktoFlip.append(diskPos)
+                        break
+                    iter_x += direction[0]
+                    iter_y += direction[1]
+            if(isValid):
+                self.updateBoard(allDisktoFlip)
+        return isValid
 
     def updateBoard(self, diskToFlip):
         # Fungsi untuk update board
