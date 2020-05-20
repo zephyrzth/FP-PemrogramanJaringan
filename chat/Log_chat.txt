@@ -1,3 +1,10 @@
+Progress
+untuk chat sudah bisa.
+Gui nya juga masih seadanya(mungkin menyesuaikan). 
+Tapi masih ada bug untuk close connection
+
+
+Bug
 Masih belum bisa menutup server secara auto(apabila client sudah keluar)
 Masih belum bisa menutup client dari GUI langsung(harus melakukan [quit] dari terminal dahulu kemudian keluar dari Gui dengan menekan tombol exit) mungkin karena if msvcrt.kbhit():
 Masih belum ada fitur mengganti nama user di chat
