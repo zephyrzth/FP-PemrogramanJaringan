@@ -6,6 +6,8 @@ class Othello:
     board = [[0 for i in range(8)] for j in range(8)]
     whitePieces = 0
     blackPieces = 0
+    # Variabel untuk menghitung jumlah player yang gabisa gerak
+    cantMove = 0
     
     def __init__(self):
         # kondisi pertama kali permainan
@@ -119,21 +121,27 @@ class Othello:
             self.board[x[0]][x[1]] = self.turn
 
     def isFinished(self):
-        # Fungsi untuk mengecek apakah semua board sudah terisi penuh
+        # Fungsi untuk mengecek apakah game sudah selesai
+        isFull = True
         for i in range(8):
             for j in range(8):
                 # Jika ada kotak yang masih kosong maka belum selesai gamenya
                 if self.board[i][j] == 0:
-                    return False
-        return True
-
-    def isCanMove(self):
-        # Fungsi untuk mengecek apakah player bisa melakukan sebuah move atau tidak pada suatu turn
-        for i in range(8):
-            for j in range(8):
-                if self.isValidMove(i, j, 0):
-                    return True
-        return False
+                    # Jika player masih bisa melakukan sebuah move pada suatu turn maka belum selesai gamenya
+                    if self.isValidMove(i, j, 0):
+                        self.cantMove = 0              
+                        return False
+                    isFull = False
+        # Jika board sudah penuh dengan bidak
+        if isFull:
+            return True
+        else:
+            self.cantMove += 1
+            # Jika kedua player tidak bisa bergerak
+            if self.cantMove == 2:
+                return True
+            else:
+                return False
 
     def printResult(self):
         # Fungsi untuk print hasil akhir game
@@ -150,27 +158,27 @@ class Othello:
     
     def play(self):
         while(True):
-            if self.isCanMove():
+            if self.isFinished():
+                self.printResult()
+                break
+            if self.cantMove == 0:
                 while(True):
                     self.displayBoard()
                     self.positionx=input(">>Player 1 (Black) turn, choose x coordinate: ")
                     self.positiony=input(">>Player 1 (Black) turn, choose y coordinate: ")
                     if self.fillBoard():
                         break            
+            self.turn = 2
             if self.isFinished():
                 self.printResult()
                 break
-            self.turn = 2
-            if self.isCanMove():
+            if self.cantMove == 0:
                 while(True):
                     self.displayBoard()
                     self.positionx=input(">>Player 2 (White) turn, choose x coordinate: ")
                     self.positiony=input(">>Player 2 (White) turn, choose x coordinate: ")
                     if self.fillBoard():
                         break
-            if self.isFinished():
-                self.printResult()
-                break
             self.turn = 1
 
 ot = Othello()
