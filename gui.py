@@ -266,7 +266,7 @@ class App:
         turnDescription_label.grid(row=0, column=4)
         playerName2_label.grid(row=0, column=7)
         playerScore2_label.grid(row=0, column=6)
-        winNotification_label.pack()
+        winNotification_label.grid(row=0)
 
 
     def setPlayer(self, ore_no_turn):
