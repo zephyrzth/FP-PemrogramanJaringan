@@ -10,23 +10,23 @@ class Othello:
     def __init__(self):
         # kondisi pertama kali permainan
         # 2 bidak putih dan 2 bidak hitam saling bersilangan di tengah
-        Othello.board[4][3] = Othello.board[3][4] = 1
-        Othello.board[3][3] = Othello.board[4][4] = 2
+        self.board[4][3] = self.board[3][4] = 1
+        self.board[3][3] = self.board[4][4] = 2
         self.turn = 1
 
     def countPieces(self):
-        Othello.whitePieces = 0
-        Othello.blackPieces = 0
+        self.whitePieces = 0
+        self.blackPieces = 0
         for i in range(8):
             for j in range(8):
-                if(Othello.board[i][j] == 1):
-                    Othello.blackPieces += 1
-                elif(Othello.board[i][j] == 2):
-                    Othello.whitePieces += 1
+                if(self.board[i][j] == 1):
+                    self.blackPieces += 1
+                elif(self.board[i][j] == 2):
+                    self.whitePieces += 1
 
     def displayBoard(self):
         # GUI mungkin ngubah disini nantinya
-        for row in Othello.board:
+        for row in self.board:
             print("-----------------")
             print("|", end="")
             for element in row:
@@ -47,8 +47,8 @@ class Othello:
         # Misal harus 1 2 2 2 (maka player 1 bisa naruh di samping bidak angka 2 tersebut)
         # Kalau nomor 2 sudah terpenuhi, maka semua bidak diantara 1 tersebut akan menjadi sama warnanya
         # Sebagai contoh tadi 1 2 2 2 1 maka akan berubah menjadi 1 1 1 1 1
-        if self.isValidMove(int(self.positionx), int(self.positiony)):
-            Othello.board[int(self.positionx)][int(self.positiony)] = self.turn
+        if self.isValidMove(int(self.positionx), int(self.positiony), 1):
+            self.board[int(self.positionx)][int(self.positiony)] = self.turn
             return True
         else:
             print("\nSorry, your move violate the rules, Please try another move!\n")
@@ -60,16 +60,16 @@ class Othello:
 
     def isEmptyBoard(self, x, y):
         # Fungsi untuk mengecek apakah koordinat x,y kosong atau tidak
-        return Othello.board[x][y] == 0
+        return self.board[x][y] == 0
 
     def isEnemyDisk(self, x, y):
         # Fungsi untuk mengecek apakah koordinat x,y bidak lawan atau tidak
-        return Othello.board[x][y] != self.turn
+        return self.board[x][y] != self.turn
 
-    def isValidMove(self, x, y):
+    def isValidMove(self, x, y, updateFlag):
         # Fungsi untuk mengecek apakah valid dan apakah ada bidak yang perlu dialik warnanya
         # Jika bidak yang dipilih diluar papan
-        if not self.isOnBoard(int(self.positionx), int(self.positiony)):
+        if not self.isOnBoard(x,y):
             return False
         isValid = False
         # Jika kotak yang dipilih masih kosong   
@@ -108,7 +108,7 @@ class Othello:
                         break
                     iter_x += direction[0]
                     iter_y += direction[1]
-            if(isValid):
+            if isValid and updateFlag:
                 self.updateBoard(allDisktoFlip)
         return isValid
 
@@ -116,16 +116,24 @@ class Othello:
         # Fungsi untuk update board
         # update koordinat board menjadi warna bidak player sekarang
         for x in diskToFlip:
-            Othello.board[x[0]][x[1]] = self.turn
+            self.board[x[0]][x[1]] = self.turn
 
     def isFinished(self):
         # Fungsi untuk mengecek apakah semua board sudah terisi penuh
         for i in range(8):
             for j in range(8):
                 # Jika ada kotak yang masih kosong maka belum selesai gamenya
-                if Othello.board[i][j] == 0:
+                if self.board[i][j] == 0:
                     return False
         return True
+
+    def isCanMove(self):
+        # Fungsi untuk mengecek apakah player bisa melakukan sebuah move atau tidak pada suatu turn
+        for i in range(8):
+            for j in range(8):
+                if self.isValidMove(i, j, 0):
+                    return True
+        return False
 
     def printResult(self):
         # Fungsi untuk print hasil akhir game
@@ -142,23 +150,24 @@ class Othello:
     
     def play(self):
         while(True):
-            while(True):
-                self.displayBoard()
-                self.positionx=input(">>Player 1 (Black) turn, choose x coordinate: ")
-                self.positiony=input(">>Player 1 (Black) turn, choose y coordinate: ")
-                if self.fillBoard():
-                    break            
-            # print(self.isFinished)
+            if self.isCanMove():
+                while(True):
+                    self.displayBoard()
+                    self.positionx=input(">>Player 1 (Black) turn, choose x coordinate: ")
+                    self.positiony=input(">>Player 1 (Black) turn, choose y coordinate: ")
+                    if self.fillBoard():
+                        break            
             if self.isFinished():
                 self.printResult()
                 break
             self.turn = 2
-            while(True):
-                self.displayBoard()
-                self.positionx=input(">>Player 2 (White) turn, choose x coordinate: ")
-                self.positiony=input(">>Player 2 (White) turn, choose x coordinate: ")
-                if self.fillBoard():
-                    break
+            if self.isCanMove():
+                while(True):
+                    self.displayBoard()
+                    self.positionx=input(">>Player 2 (White) turn, choose x coordinate: ")
+                    self.positiony=input(">>Player 2 (White) turn, choose x coordinate: ")
+                    if self.fillBoard():
+                        break
             if self.isFinished():
                 self.printResult()
                 break
