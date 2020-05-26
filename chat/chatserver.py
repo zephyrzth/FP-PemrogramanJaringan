@@ -26,6 +26,7 @@ def clientthread(conn, addr):
                 print(len(list_of_clients))
                 if len(list_of_clients) == 0:
                     stop = 1
+                   
                     break
                 
             
@@ -59,6 +60,7 @@ while True:
         print(addr[0] + 'connected')
         threading.Thread(target=clientthread, args=(conn, addr)).start()
         if stop == 1:
+            server.close()
             break
     except KeyboardInterrupt:
         break

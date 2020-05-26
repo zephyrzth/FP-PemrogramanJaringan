@@ -100,9 +100,9 @@ class Gui_Chat :
       #self.button_inputname = Button(self.bottomframe, width=10, text = "Start ", fg= "black",command = self.printpesan)
       #self.button_inputname.pack(side = BOTTOM)
       #self.button_inputname.place(x=20, y=19)
-      self.button_exit =  Button(self.bottomframe, width=10, text = "Exit", fg= "black",command = self.on_close)
+      #self.button_exit =  Button(self.bottomframe, width=10, text = "Exit", fg= "black",command = self.on_close)
       #self.button_exit.pack(side = BOTTOM )
-      self.button_exit.place(x=240, y=19)
+      #self.button_exit.place(x=240, y=19)
 
       self.input_box()
       self.chat_box()
@@ -121,20 +121,39 @@ class Gui_Chat :
 
 
     def clear_box(self,event = None): 
-      if self.Clicked: 
-          self.Clicked = False
-          self.entry_field.delete(0, "end") 
+      #if self.Clicked: 
+      #    self.Clicked = False
+      if self.entry_field['fg']=='grey':
+        self.entry_field.config(fg='black')
+        self.entry_field.delete(0, "end") 
+      
           
     def chat_box(self):
       frame = self.topframe
-      scrollbar = Scrollbar(frame)
+      
       Label(frame, text='Chat:', font=("Serif", 12)).pack(side='top', anchor='w')
-      self.msg_list = Listbox(frame, height=20, width=50, yscrollcommand=scrollbar.set)
-      scrollbar.pack(side=RIGHT, fill=Y)
+      self.msg_list = Listbox(frame, height=20, width=50)
+      
       self.msg_list.pack(side=LEFT, fill=BOTH)
       self.msg_list.pack()
+      scrollbar = Scrollbar(frame, orient=VERTICAL, command=self.msg_list.yview)
+      
+      self.msg_list.configure(yscrollcommand=scrollbar.set)
+      scrollbar.config(command=self.msg_list.yview)
+      scrollbar.pack(side=RIGHT, fill=Y)
       #GUI.chat_log.config(state=tkinter.DISABLED)
       #frame.pack()
+
+    def placeholder(self):
+      #self.clear_box()
+      self.entry_field.config(fg='grey')
+      self.entry_field.insert(0, 'enter chat here')
+      
+
+    def foc_out(self, *args):
+      if self.entry_field.index('end')==0:
+       self.placeholder()
+      
 
 
     def input_box(self):
@@ -146,12 +165,17 @@ class Gui_Chat :
       # frame.pack(side='top')
       frame = self.bottomframe
       self.messages = StringVar()  
-      self.entry_field = Entry(frame, textvariable=self.messages, width = 280)
+      self.entry_field = Entry(frame, textvariable=self.messages, width=40, fg='black')
+      #self.entry_field.insert(0, 'enter chat here')
+      
+      self.entry_field.bind('<FocusOut>', self.foc_out)
       self.entry_field.bind('<FocusIn>', self.clear_box)
+      
       self.entry_field.bind("<Return>", self.send_message)
-      self.entry_field.pack()
+      self.placeholder()
+      self.entry_field.grid(row=1, column=1)
       self.send_button = Button(frame, width=10, text="Send", command=self.send_message)
-      self.send_button.pack(side=LEFT)
+      self.send_button.grid(row=1, column=2)
       #self.send_button.place(x=20, y=19)
         
     
