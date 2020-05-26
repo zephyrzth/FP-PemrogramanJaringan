@@ -31,7 +31,7 @@ def clientthread(conn, addr):
             
             if message:
                 print('<' + addr[0] + '>' + message)
-                message_to_send = '<' + addr[0] + '>' + message
+                message_to_send = '<' + 'opponent' + '>' + message
                 broadcast(message_to_send, conn)
                 
         except:

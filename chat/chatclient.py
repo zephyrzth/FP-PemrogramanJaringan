@@ -97,10 +97,12 @@ class Gui_Chat :
       self.bottomframe = Frame(self.root)
       self.bottomframe.pack(side = BOTTOM)
 
-      self.button_inputname = Button(self.bottomframe, text = "Start ", fg= "black",command = self.printpesan)
-      self.button_inputname.pack(side = BOTTOM)
-      self.button_exit =  Button(self.bottomframe, text = "Exit", fg= "black",command = self.on_close)
-      self.button_exit.pack(side = BOTTOM )
+      #self.button_inputname = Button(self.bottomframe, width=10, text = "Start ", fg= "black",command = self.printpesan)
+      #self.button_inputname.pack(side = BOTTOM)
+      #self.button_inputname.place(x=20, y=19)
+      self.button_exit =  Button(self.bottomframe, width=10, text = "Exit", fg= "black",command = self.on_close)
+      #self.button_exit.pack(side = BOTTOM )
+      self.button_exit.place(x=240, y=19)
 
       self.input_box()
       self.chat_box()
@@ -112,6 +114,9 @@ class Gui_Chat :
 
     def on_close(self):
       self.root.destroy()
+      temp = '[quit]'
+      self.server.send(temp.encode())
+      self.server.close()
       exit(0)
 
 
@@ -124,10 +129,11 @@ class Gui_Chat :
       frame = self.topframe
       scrollbar = Scrollbar(frame)
       Label(frame, text='Chat:', font=("Serif", 12)).pack(side='top', anchor='w')
-      self.msg_list = Listbox(frame, height=15, width=50, yscrollcommand=scrollbar.set)
+      self.msg_list = Listbox(frame, height=20, width=50, yscrollcommand=scrollbar.set)
       scrollbar.pack(side=RIGHT, fill=Y)
       self.msg_list.pack(side=LEFT, fill=BOTH)
       self.msg_list.pack()
+      #GUI.chat_log.config(state=tkinter.DISABLED)
       #frame.pack()
 
 
@@ -144,8 +150,9 @@ class Gui_Chat :
       self.entry_field.bind('<FocusIn>', self.clear_box)
       self.entry_field.bind("<Return>", self.send_message)
       self.entry_field.pack()
-      self.send_button = Button(frame, text="Send", command=self.send_message)
-      self.send_button.pack()
+      self.send_button = Button(frame, width=10, text="Send", command=self.send_message)
+      self.send_button.pack(side=LEFT)
+      #self.send_button.place(x=20, y=19)
         
     
 if __name__ == '__main__':
