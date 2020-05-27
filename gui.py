@@ -7,7 +7,9 @@ from tkinter import *
 
 class Othello:
     board = [[0 for i in range(8)] for j in range(8)]
-    
+    # Variabel untuk menghitung jumlah player yang gabisa gerak
+    cantMove = 0
+
     def __init__(self):
         # kondisi pertama kali permainan
         # 2 bidak putih dan 2 bidak hitam saling bersilangan di tengah
@@ -49,14 +51,14 @@ class Othello:
         if self.isEmptyBoard(x, y):
             # Untuk mengecek 8 arah
             ARRAY_DIRECTION=[
-                [-1 ,  0],  # Atas
-                [ 1 ,  0],  # Bawah
-                [ 0 ,  1],  # Kanan
-                [ 0 , -1],  # Kiri
-                [-1 ,  1],  # Kanan Atas
+                [-1 ,  0],  # Kiri
+                [ 1 ,  0],  # Kanan
+                [ 0 ,  1],  # Bawah
+                [ 0 , -1],  # Atas
+                [-1 ,  1],  # Kiri Bawah
                 [-1 , -1],  # Kiri Atas
                 [ 1 ,  1],  # Kanan Bawah
-                [ 1 , -1],  # Kiri Bawah
+                [ 1 , -1],  # Kanan Atas
             ]
             allDisktoFlip = []
 
@@ -92,29 +94,27 @@ class Othello:
             self.board[x[0]][x[1]] = self.turn
 
     def isFinished(self):
-        # Fungsi untuk mengecek apakah semua board sudah terisi penuh
+        # Fungsi untuk mengecek apakah game sudah selesai
+        isFull = True
         for i in range(8):
             for j in range(8):
                 # Jika ada kotak yang masih kosong maka belum selesai gamenya
                 if self.board[i][j] == 0:
-                    if(self.isValidMove(i, j, False)):
+                    # Jika player masih bisa melakukan sebuah move pada suatu turn maka belum selesai gamenya
+                    if self.isValidMove(i, j, False):
+                        self.cantMove = 0              
                         return False
-                    else:
-                        continue
-        return True
-
-    def printResult(self):
-        # Fungsi untuk print hasil akhir game
-        self.displayBoard()
-        self.countPieces()
-        print("\nBlack Pieces (Player 1): " + str(self.blackPieces))
-        print("\nWhite Pieces (Player 2): " + str(self.whitePieces))
-        if self.blackPieces > self.whitePieces:
-            print("\nCongratulations!!! Player 1 win!\n")
-        elif self.whitePieces > self.blackPieces:
-            print("\nCongratulations!!! Player 2 win!\n")
+                    isFull = False
+        # Jika board sudah penuh dengan bidak
+        if isFull:
+            return True
         else:
-            print("\nCongratulations!!! The result is draw!\n")
+            self.cantMove += 1
+            # Jika kedua player tidak bisa bergerak
+            if self.cantMove == 2:
+                return True
+            else:
+                return False
 
 class App:
     NONE_BOARD_LOCATION = "assets/none.png"
@@ -278,9 +278,15 @@ class App:
         y = event.y_root - self.board_frame.winfo_rooty()
 
         z = self.board_frame.grid_location(x,y)
-
+        print(z)
         if(self.othello.isValidMove(z[0], z[1], True)):
             self.othello.board[z[0]][z[1]] = self.othello.turn
+            if(self.othello.turn == 2): self.setPlayer(1)
+            else: self.setPlayer(2)
+            self.displayBoard()
+            self.makeScoreBoard()
+        print(self.othello.cantMove)
+        if self.othello.cantMove != 0:
             if(self.othello.turn == 2): self.setPlayer(1)
             else: self.setPlayer(2)
             self.displayBoard()
