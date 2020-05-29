@@ -19,7 +19,7 @@ class Othello:
         # 2 bidak putih dan 2 bidak hitam saling bersilangan di tengah
         self.board[4][3] = self.board[3][4] = 1
         self.board[3][3] = self.board[4][4] = 2
-        print("Player " + str(playerColor))
+        print(playerColor)
         self.myTurn = playerColor
         self.turn = 1
 
@@ -134,17 +134,13 @@ class App:
         self.windows.title("Othello")
         self.loadImage()
         self.generate_socket()
-        self.generate_chat_socket()
         playerColor = self.server.recv(2048).decode()
         self.othello = Othello(int(playerColor))
         self.makeGameFrame()
-        self.makeChatFrame()
         self.create_thread()
-        self.create_chat_thread()
         self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
         self.windows.mainloop()
 
-    # Bagian game
     def generate_socket(self):
         # Fungsi untuk mengenerate socket game untuk koneksi ke server
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -186,7 +182,7 @@ class App:
                                 self.makeScoreBoard()
             except OSError:  # Possibly client has left the chat.
                 break
-
+    
     def loadImage(self):
         # Fungsi untuk meload image dari folder assets
         self.NONE_BOARD_IMAGE   = self.inputImage(self.NONE_BOARD_LOCATION)
@@ -398,106 +394,6 @@ class App:
         # Fungsi untuk menghandle ketika user menghover papan permainan bagian yang sudah terisi bidak
         self.helperLabel.configure(image=self.NONE_BOARD_IMAGE)
 
-    # Bagian Chat
-    def generate_chat_socket(self):
-        # Fungsi untuk mengenerate socket chat untuk koneksi ke server
-        self.chatServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.chatServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        ip_address = '127.0.0.1'
-        port = 5000
-        self.chatServer.connect((ip_address, port))
-
-    def create_chat_thread(self):
-        # Fungsi untuk membuat thread untuk menghandle penerimaan data chat dengan server
-        receive_chat_thread = Thread(target=self.receiveChat)
-        receive_chat_thread.start()
-
-    def receiveChat(self):
-        # Fungsi untuk menghandle penerimaan data chat dari server
-
-        while self._running:
-            try:
-                sockets_list = [self.chatServer]
-                read_socket, write_socket, error_socket, = select.select(sockets_list, [], [], 1)
-                
-                if msvcrt.kbhit():
-                    read_socket.append(sys.stdin)
-                                
-                for socks in read_socket:
-                    if socks == self.chatServer:
-                        message = socks.recv(2048).decode()
-                        if "[quit]" in message:
-                            message = "Your opponent has left the game"
-                            self.msg_list.insert(END, message)
-                        else:
-                            self.msg_list.insert(END, message)
-            except OSError:  # Possibly client has left the chat.
-                break
-    
-    def makeChatFrame(self):
-        # Fungsi untuk membuat frame dari chat othello
-        self.topframe = Frame(self.windows)
-        self.topframe.pack()
-        self.bottomframe = Frame(self.windows)
-        self.bottomframe.pack()
-
-        self.chat_box()
-        self.input_box()
-
-    def chat_box(self):
-        # Fungsi untuk membuat gui bagian list chat box
-        frame = self.topframe
-        
-        Label(frame, text='Chat:', font=("Serif", 12)).pack(side='top', anchor='w')
-        self.msg_list = Listbox(frame, height=20, width=50)
-        
-        self.msg_list.pack(side=LEFT, fill=BOTH)
-        self.msg_list.pack()
-        scrollbar = Scrollbar(frame, orient=VERTICAL, command=self.msg_list.yview)
-        
-        self.msg_list.configure(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.msg_list.yview)
-        scrollbar.pack(side=RIGHT, fill=Y)
-
-    def send_message(self, event = None):
-        # Fungsi untuk mengirimkan chat ke server
-        msg = self.messages.get()
-        self.messages.set("")  # Clears input field.
-        if msg:
-            self.chatServer.send(msg.encode())
-            self.msg_list.insert(END, "<You> " + msg)
-    
-    def clear_box(self,event = None): 
-        # Fungsi untuk membersihkan entry field chat
-        if self.entry_field['fg']=='grey':
-            self.entry_field.config(fg='black')
-            self.entry_field.delete(0, "end")
-
-    def placeholder(self):
-        # Fungsi untuk membuat placeholder pada entry field chat
-        self.entry_field.config(fg='grey')
-        self.entry_field.insert(0, 'Enter your chat here')
-        
-    def foc_out(self, *args):
-        # Fungsi untuk menghandle ketika fokus point tidak ada di entry field chat lagi
-        if self.entry_field.index('end')==0:
-            self.placeholder()
-
-    def input_box(self):
-        # Fungsi untuk membuat entry field untuk menginputkan chat dari user
-        frame = self.bottomframe
-        self.messages = StringVar()  
-        self.entry_field = Entry(frame, textvariable=self.messages, width=40, fg='black')
-        
-        self.entry_field.bind('<FocusOut>', self.foc_out)
-        self.entry_field.bind('<FocusIn>', self.clear_box)
-        
-        self.entry_field.bind("<Return>", self.send_message)
-        self.placeholder()
-        self.entry_field.grid(row=1, column=1)
-        self.send_button = Button(frame, width=10, text="Send", command=self.send_message)
-        self.send_button.grid(row=1, column=2)
-
     def on_close(self):
         # Fungsi untuk menghandle ketika aplikasi client diclose
         self._running = False
@@ -505,7 +401,5 @@ class App:
         temp = '[quit]'
         self.server.send(temp.encode())
         self.server.close()
-        self.chatServer.send(temp.encode())
-        self.chatServer.close()
 
 myApp = App()
