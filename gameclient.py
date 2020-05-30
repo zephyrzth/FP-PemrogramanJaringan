@@ -427,7 +427,7 @@ class App:
                 for socks in read_socket:
                     if socks == self.chatServer:
                         message = socks.recv(2048).decode()
-                        if "[quit]" in message:
+                        if message=="[quit]":
                             message = "Your opponent has left the game"
                             self.msg_list.insert(END, message)
                         else:
@@ -465,8 +465,10 @@ class App:
         msg = self.messages.get()
         self.messages.set("")  # Clears input field.
         if msg:
-            self.chatServer.send(msg.encode())
             self.msg_list.insert(END, "<You> " + msg)
+            msg = "<opponent> " + str(msg)
+            self.chatServer.send(msg.encode())
+            
     
     def clear_box(self,event = None): 
         # Fungsi untuk membersihkan entry field chat
