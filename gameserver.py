@@ -108,7 +108,8 @@ def chatClientThread(conn, addr):
                 
             if message:
                 print('<' + addr[0] + '>' + message)
-                message_to_send = '<' + 'opponent' + '>' + message
+                #message_to_send = '<' + 'opponent' + '>' + message
+                message_to_send = message
                 broadcastChat(message_to_send, conn)
                 
         except:
