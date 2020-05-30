@@ -61,6 +61,9 @@ class ClientSocket(threading.Thread):
             return True
         return False
 
+    def broadcast(self, data):
+        return True if self.gameServer.broadcast(self, data) else False
+
     def exitGame(self):
         if self.gameServer.exitPlayer(self):
             self.gameServer = None
@@ -77,29 +80,28 @@ class ClientSocket(threading.Thread):
                 print(str(data_message.decode()))
 
                 if str(data_message.decode()) == '[start]' and self.joinGame():
-                    print(self.gameServer.roomPlayer)
+                    print(f"Room ID: {self.gameServer.getRoomId()}, Room Player: {self.gameServer.roomPlayer}")
                 elif str(data_message.decode()) == '[quit]' and self.exitGame():
                     print("Client keluar")
+                else:
+                    self.broadcast(data_message)
             except:
                 self.exitGame()
                 break
 
 
 class GameServer:  # Room Class
-    gameServerList = []  # Menyimpan list semua room (GameServer)
-    allPlayerList = []
+    gameServerList = []  # List semua room (static) : GameServer
+    allPlayerList = []  # List semua pemain (static) : ClientSocket
     CODE_GAME_PREPARING = 0
     CODE_GAME_PLAYING = 1
     CODE_GAME_END = 2
     ROOM_PLAYER_LIMIT = 2
 
     def __init__(self):
-        self.gameMap = None
         self.gameStatus = GameServer.CODE_GAME_PREPARING
-        self.roomPlayer = []
+        self.roomPlayer = []    # List pemain dalam room
         self.roomWinner = None
-        self.turnNow = 0
-        self.N = 8
 
     @staticmethod
     def join(client_object):
@@ -123,9 +125,23 @@ class GameServer:  # Room Class
         except:
             return None
 
+    def broadcast(self, client_object, data):
+        try:
+            for sock in self.roomPlayer:
+                if sock != client_object:
+                    sock.client_socket.send(data)
+        except:
+            return False
+
     def findColor(self, client_object):
         try:
             return self.roomPlayer.index(client_object) + 1
+        except:
+            return None
+
+    def getRoomId(self):
+        try:
+            return GameServer.gameServerList.index(self) + 1
         except:
             return None
 
