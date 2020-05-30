@@ -135,6 +135,7 @@ class App:
         self.loadImage()
         self.generate_socket()
         self.generate_chat_socket()
+        self.server.send("[start]".encode())
         playerColor = self.server.recv(2048).decode()
         self.othello = Othello(int(playerColor))
         self.makeGameFrame()
@@ -150,7 +151,7 @@ class App:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         ip_address = '127.0.0.1'
-        port = 8081
+        port = 5000
         self.server.connect((ip_address, port))
 
     def create_thread(self):
@@ -404,7 +405,7 @@ class App:
         self.chatServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.chatServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         ip_address = '127.0.0.1'
-        port = 5000
+        port = 5001
         self.chatServer.connect((ip_address, port))
 
     def create_chat_thread(self):
