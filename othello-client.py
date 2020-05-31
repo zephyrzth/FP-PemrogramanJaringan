@@ -131,6 +131,37 @@ class App:
     def __init__(self):
         self._running = True
         self.windows = Tk()
+        self.generate_main_menu()
+        # self.windows.title("Othello")
+        # self.loadImage()
+        # self.generate_socket()
+        # playerColor = self.server.recv(2048).decode()
+        # self.othello = Othello(int(playerColor))
+        # self.makeGameFrame()
+        # self.create_thread()
+        # self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.windows.mainloop()
+
+    def generate_main_menu(self):
+        self.windows.title("Welcome to Othello")
+        self.frm_mainmenu = Frame(self.windows, padx=75, pady=30)
+        self.frm_mainmenu.pack()
+
+        self.lbl_username = Label(self.frm_mainmenu, text="Enter username:")
+        self.lbl_username.pack(side="top", anchor="w")
+        
+        self.ent_username = Entry(self.frm_mainmenu, text="")
+        self.ent_username.pack(side="top")
+
+        self.btn_findmatch = Button(self.frm_mainmenu, text="Find Match", command=self.start_game)
+        self.btn_findmatch.pack(side="top", pady=5)
+
+        self.btn_exit = Button(self.frm_mainmenu, text="Exit", command=self.on_btn_exit)
+        self.btn_exit.pack(side="top")
+
+    def start_game(self):
+        self.frm_mainmenu.pack_forget()
+        self.frm_mainmenu.destroy()
         self.windows.title("Othello")
         self.loadImage()
         self.generate_socket()
@@ -139,7 +170,10 @@ class App:
         self.makeGameFrame()
         self.create_thread()
         self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.windows.mainloop()
+
+    def on_btn_exit(self):
+        self.windows.destroy()
+        exit(0)
 
     def generate_socket(self):
         # Fungsi untuk mengenerate socket game untuk koneksi ke server
