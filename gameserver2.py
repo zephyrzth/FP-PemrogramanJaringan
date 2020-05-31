@@ -11,13 +11,6 @@ gameserver_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 gameserver_socket.bind(gameserver_address)
 gameserver_socket.listen(100)
 
-# Chat Socket
-chatserver_address = ('127.0.0.1', 5001)
-chatserver_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-chatserver_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-chatserver_socket.bind(chatserver_address)
-chatserver_socket.listen(100)
-
 
 def gameAccept():
     running = True
@@ -28,13 +21,6 @@ def gameAccept():
         ClientSocket(client_socket, client_address).start()
 
 
-def chatAccept():
-    running = True
-    while running:
-        client_socket, client_address = chatserver_socket.accept()
-        print("Chat: Client " + str(client_address) + " connected.")
-
-
 # gameStatus List:
 # 0 exit
 # 1 play: player 1 turn
@@ -43,6 +29,7 @@ def chatAccept():
 
 class ClientSocket(threading.Thread):
     BUFFER_SIZE = 2048
+    HEADER_LENGTH = 10
 
     def __init__(self, client, address):
         threading.Thread.__init__(self)
@@ -82,11 +69,11 @@ class ClientSocket(threading.Thread):
                 if str(data_message.decode()) == '[start]' and self.joinGame():
                     print(f"Room ID: {self.gameServer.getRoomId()}, Room Player: {self.gameServer.roomPlayer}")
                 elif str(data_message.decode()) == '[quit]' and self.exitGame():
-                    print("Client keluar")
+                    print(f"Client {self.client_address} exiting")
+                    running = False
                 else:
                     self.broadcast(data_message)
             except:
-                self.exitGame()
                 break
 
 
@@ -100,7 +87,7 @@ class GameServer:  # Room Class
 
     def __init__(self):
         self.gameStatus = GameServer.CODE_GAME_PREPARING
-        self.roomPlayer = []    # List pemain dalam room
+        self.roomPlayer = []  # List pemain dalam room
         self.roomWinner = None
 
     @staticmethod
@@ -158,7 +145,4 @@ class GameServer:  # Room Class
 
 if __name__ == '__main__':
     t1 = threading.Thread(gameAccept()).start()
-    t2 = threading.Thread(chatAccept()).start()
-
     t1.join()
-    t2.join()
