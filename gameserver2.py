@@ -83,6 +83,8 @@ class ClientSocket(threading.Thread):
                     self.broadcast(data_message)
                     print(f"Client {self.client_address} exiting")
                     self.exitAll()
+                    print("room list: " + str(GameServer.gameServerList))
+                    print("player list: " + str(GameServer.allPlayerList))
                     running = False
                 else:
                     self.broadcast(data_message)

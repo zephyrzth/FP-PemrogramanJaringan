@@ -24,6 +24,7 @@ class Othello:
         self.turn = 1
 
     def countPieces(self):
+        # Fungsi untuk menghitung jumlah bidak hitam dan putih pada papan othello
         whitePieces = 0
         blackPieces = 0
         for i in range(8):
@@ -131,6 +132,7 @@ class App:
     HEADER_LENGTH = 10
 
     def __init__(self):
+        # Fungsi saat object App pertama kali dibuat
         self._running = True
         self.windows = Tk()
         self.generate_main_page()
@@ -148,7 +150,7 @@ class App:
         self.ent_username.pack(pady=(0, 15))
         self.btn_findmatch = Button(self.main_frame, text="Find Match", command=self.start_game)
         self.btn_findmatch.pack(pady=(0, 5))
-        self.btn_exit = Button(self.main_frame, text="Exit", command=self.on_btn_exit)
+        self.btn_exit = Button(self.main_frame, text="Exit", command=self.on_close)
         self.btn_exit.pack()
 
     def start_game(self):
@@ -158,6 +160,7 @@ class App:
         self.windows.title("Othello")
         self.loadImage()
         self.generate_socket()
+        self._running = True
         self.server.send("[start]".encode())
         playerColor = self.server.recv(2048).decode()
         self.waitingForOpponent()
@@ -165,7 +168,6 @@ class App:
         print(data)
         while data == b"0":
             data = self.server.recv(1)
-            print(data)
         self.othello = Othello(int(playerColor))
         self.waiting_window.destroy()
         self.makeGameFrame()
@@ -182,19 +184,13 @@ class App:
         self.lbl_waiting.pack(padx=30, pady=15)
         self.lbl_waiting.update()
         self.waiting_window.lift(self.windows)
-    
-    def on_btn_exit(self):
-        # Fungsi untuk close aplikasi ketika berada pada main menu
-        self._running = False
-        self.windows.destroy()
-        self.server.close()
 
     # Bagian game
     def generate_socket(self):
         # Fungsi untuk mengenerate socket game untuk koneksi ke server
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        ip_address = '7.222.220.216'
+        ip_address = '127.0.0.1'
         port = 5000
         self.server.connect((ip_address, port))
 
@@ -236,12 +232,11 @@ class App:
                                     self.displayBoard()
                                     self.makeScoreBoard()
                         elif str(message[:App.HEADER_LENGTH]).strip() == '[chat]':
-                            if str(message[App.HEADER_LENGTH:]).strip() == "[quit]":
-                                message = "Your opponent has left the game"
                             self.msg_list.insert(END, str(message[App.HEADER_LENGTH:]).strip())
 
             except OSError:  # Possibly client has left the chat.
                 break
+        print("Keluar fungsi receive")
 
     def loadImage(self):
         # Fungsi untuk meload image dari folder assets
@@ -390,7 +385,6 @@ class App:
                 )
             if self.play_again_frame.winfo_exists():
                 self.btn_play_again.pack(side=LEFT)
-                self.server.send(b"[quit]")
 
         if self.othello.turn == 1:
             turnDescription_label.configure(
@@ -523,12 +517,15 @@ class App:
         self.send_button.grid(row=1, column=2)
 
     def on_close(self):
-        # Fungsi untuk menghandle ketika aplikasi client diclose dengan mengklik tombol x
+        # Fungsi untuk menghandle ketika aplikasi client diclose dengan mengklik tombol x atau exit
         self._running = False
         self.windows.destroy()
         temp = '[quit]'
-        self.server.send(temp.encode())
-        self.server.close()
+        try:
+            self.server.send(temp.encode())
+            self.server.close()
+        except:
+            pass
 
     def makePlayAgainFrame(self):
         # Fungsi untuk memunculkan tombol play again ketika game berakhir
@@ -538,9 +535,12 @@ class App:
 
     def on_btn_play_again(self):
         # Fungsi untuk menghandle ketika tombol play again ditekan
+        self._running = False
+        self.server.send(b"[quit]")
+        self.server.close()
         for child in self.windows.winfo_children():
             child.destroy()
-        del self.othello
+        self.othello = None
         self.generate_main_page()
 
 myApp = App()
