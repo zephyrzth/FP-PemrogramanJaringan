@@ -167,13 +167,28 @@ class App:
         self.generate_socket()
         self.server.send("[start]".encode())
         playerColor = self.server.recv(2048).decode()
+        self.waitingForOpponent()
+        data = self.server.recv(1)
+        print(data)
+        while data == b"0":
+            data = self.server.recv(1)
+            print(data)
         self.othello = Othello(int(playerColor))
+        self.waiting_window.destroy()
         self.makeGameFrame()
         self.makeChatFrame()
         self.makePlayAgainFrame()
         self.create_thread()
         self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
-
+    
+    def waitingForOpponent(self):
+        self.waiting_window = Toplevel()
+        self.waiting_window.title("Searching")
+        self.lbl_waiting = Label(self.waiting_window, text="Searching for opponent. . .")
+        self.lbl_waiting.pack(padx=30, pady=15)
+        self.lbl_waiting.update()
+        self.waiting_window.lift(self.windows)
+    
     def on_btn_exit(self):
         self.windows.destroy()
         exit(0)
