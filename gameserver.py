@@ -2,151 +2,171 @@ import socket
 import select
 import sys
 import threading
+import struct
+import time
 
-# Membuat game server socket pada port 8081
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-ip_address = '127.0.0.1'
-port = 8081
-server.bind((ip_address, port))
-server.listen(100)
-list_of_clients = []
+# Game Server Socket
+gameserver_address = ('127.0.0.1', 5000)
+gameserver_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+gameserver_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+gameserver_socket.bind(gameserver_address)
+gameserver_socket.listen(100)
 
-# Membuat chat server socket pada port 5000
-chatServer = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-chatServer.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-ip_address = '127.0.0.1'
-port = 5000
-chatServer.bind((ip_address, port))
-chatServer.listen(100)
-list_of_chat_clients = []
-print("Waiting for client.,.,.,.,.")
-clientCount = 0
-run = True
 
-def clientThread(conn, addr):
-    # Fungsi untuk menghandle client game thread
-    global list_of_clients
-    global run
-    while run:
+def gameAccept():
+    running = True
+    while running:
+        client_socket, client_address = gameserver_socket.accept()
+        print("Game: Client " + str(client_address) + " connected.")
+
+        ClientSocket(client_socket, client_address).start()
+
+
+# gameStatus List:
+# 0 exit
+# 1 play: player 1 turn
+# 2 play: player 2 turn
+# 3 finish
+
+class ClientSocket(threading.Thread):
+    BUFFER_SIZE = 2048
+    HEADER_LENGTH = 10
+
+    def __init__(self, client, address):
+        threading.Thread.__init__(self)
+        self.client_socket = client
+        self.client_address = address
+        self.size = ClientSocket.BUFFER_SIZE
+        self.gameServer = None
+        self.gameColor = None
+
+    def joinGame(self):
+        self.gameServer = GameServer.join(self)
+        self.gameColor = self.gameServer.findColor(self)
+        print(f"Player {self.client_address} color: {self.gameColor}")
+        if self.gameServer is not None and self.gameColor is not None:
+            self.client_socket.send(str(self.gameColor).encode())
+            return True
+        return False
+
+    def broadcast(self, data):
+        return True if self.gameServer.broadcast(self, data) else False
+
+    def exitGame(self):
+        if self.gameServer.exitPlayer(self):
+            self.gameServer = None
+            return True
+        return False
+
+    def exitAll(self):
+        if self.gameServer.exitAll():
+            return True
+        return False
+
+    def run(self):
+        running = True
+        while running:
+            try:
+                print("room list: " + str(GameServer.gameServerList))
+                print("player list: " + str(GameServer.allPlayerList))
+                data_message = self.client_socket.recv(self.size)
+                print(str(data_message.decode()))
+
+                if str(data_message.decode()) == '[start]' and self.joinGame():
+                    print(f"Room ID: {self.gameServer.getRoomId()}, Room Player: {self.gameServer.roomPlayer}")
+                    while self.gameServer.gameStatus == GameServer.CODE_GAME_PREPARING:
+                        self.client_socket.send(str(self.gameServer.gameStatus).encode())
+                        time.sleep(2)
+                    time.sleep(2)
+                    self.client_socket.send(str(self.gameServer.gameStatus).encode())
+                elif str(data_message.decode()) == '[quit]':
+                    self.broadcast(data_message)
+                    print(f"Client {self.client_address} exiting")
+                    self.exitAll()
+                    print("room list: " + str(GameServer.gameServerList))
+                    print("player list: " + str(GameServer.allPlayerList))
+                    running = False
+                else:
+                    self.broadcast(data_message)
+            except:
+                break
+
+
+class GameServer:  # Room Class
+    gameServerList = []  # List semua room (static) : GameServer
+    allPlayerList = []  # List semua pemain (static) : ClientSocket
+    CODE_GAME_PREPARING = 0
+    CODE_GAME_PLAYING = 1
+    CODE_GAME_END = 2
+    ROOM_PLAYER_LIMIT = 2
+
+    def __init__(self):
+        self.gameStatus = GameServer.CODE_GAME_PREPARING
+        self.roomPlayer = []  # List pemain dalam room
+        self.roomWinner = None
+
+    @staticmethod
+    def join(client_object):
         try:
-            message = conn.recv(2048).decode()
-            
-            if message == "[quit]":
-                print('<' + addr[0] + '> left the game')
-                remove(conn)
-                print("a " + str(len(list_of_clients)))
-                if len(list_of_clients) == 0:
-                    run = False
-                    print("keluar game")
+            notFound = True
+            roomFound = None
+            for i in GameServer.gameServerList:
+                if len(i.roomPlayer) < GameServer.ROOM_PLAYER_LIMIT:
+                    i.roomPlayer.append(client_object)
+                    i.gameStatus = GameServer.CODE_GAME_PLAYING
+                    roomFound = i
+                    notFound = False
                     break
-                
-            if message:
-                print('<' + addr[0] + '>' + message)
-                message_to_send = message
-                broadcast(message_to_send, conn)
+            if notFound:
+                newGameServer = GameServer()
+                newGameServer.roomPlayer.append(client_object)
+                GameServer.gameServerList.append(newGameServer)
+                roomFound = newGameServer
+
+            GameServer.allPlayerList.append(client_object)
+            return roomFound
         except:
-            continue
-    server.close()
+            return None
 
-def broadcast(message, connection):
-    # Fungsi untuk membroadcast koordinat bidak dalam game
-    for clients in list_of_clients:
-        if clients!=connection:
-            try:
-                clients.send(message.encode())
-            except:
-                clients.close()
-                remove(clients)
-
-def remove(connection):
-    # Fungsi untuk meremove koneksi client game
-    if connection in list_of_clients:
-        list_of_clients.remove(connection)
-
-def gameServerMain(): 
-    # Fungsi untuk menghandle client yang ingin melakukan koneksi dengan server game socket
-    global list_of_clients
-    global clientCount
-    global run
-    while run:
+    def broadcast(self, client_object, data):
         try:
-            try:
-                conn, addr = server.accept()
-            except:
-                break
-            list_of_clients.append(conn)
-            clientCount += 1
-            print(addr[0] + 'connected')
-            playerColor = 1
-            if clientCount % 2 == 0:
-                playerColor = 2
-            print("Player " + str(playerColor))
-            conn.send(str(playerColor).encode())
-            threading.Thread(target=clientThread, args=(conn, addr)).start()
-            if run == False:
-                break
-        except KeyboardInterrupt:
-            break
-
-def chatClientThread(conn, addr):
-    # Fungsi untuk menghandle client chat thread
-    global list_of_chat_clients
-    global run
-    while run:
-        try:
-            message = conn.recv(2048).decode()
-            
-            if message == "[quit]":
-                print('<' + addr[0] + '> left the chat')
-                removeChat(conn)
-                print("b " + str(len(list_of_chat_clients)))
-                if len(list_of_chat_clients) == 0:
-                    run = False  
-                    print("keluar chat")
-                    break
-                
-            if message:
-                print('<' + addr[0] + '>' + message)
-                #message_to_send = '<' + 'opponent' + '>' + message
-                message_to_send = message
-                broadcastChat(message_to_send, conn)
-                
+            for sock in self.roomPlayer:
+                if sock != client_object:
+                    sock.client_socket.send(data)
         except:
-            continue
-    chatServer.close()
+            return False
 
-def broadcastChat(message, connection):
-    # Fungsi untuk membroadcast chat
-    for clients in list_of_chat_clients:
-        if clients!=connection:
-            try:
-                clients.send(message.encode())
-            except:
-                clients.close()
-                removeChat(clients)
-
-def removeChat(connection):
-    # Fungsi untuk meremove koneksi client chat
-    if connection in list_of_chat_clients:
-        list_of_chat_clients.remove(connection)
-
-def chatServerMain(): 
-    # Fungsi untuk menghandle client yang ingin melakukan koneksi dengan server chat socket
-    while run:
+    def findColor(self, client_object):
         try:
-            try:
-                conn, addr = chatServer.accept()
-            except:
-                break
-            list_of_chat_clients.append(conn)
-            print(addr[0] + 'chat connected')
-            threading.Thread(target=chatClientThread, args=(conn, addr)).start()
-            if run == False:
-                break
-        except KeyboardInterrupt:
-            break
+            return self.roomPlayer.index(client_object) + 1
+        except:
+            return None
 
-# Membuat thread untuk menghandle client bagian game dan chat
-threading.Thread(target=gameServerMain).start()
-threading.Thread(target=chatServerMain).start()
+    def getRoomId(self):
+        try:
+            return GameServer.gameServerList.index(self) + 1
+        except:
+            return None
+
+    def exitPlayer(self, client_object):
+        try:
+            self.roomPlayer.remove(client_object)
+            GameServer.allPlayerList.remove(client_object)
+            if len(self.roomPlayer) < 1:
+                GameServer.gameServerList.remove(self)
+            return True
+        except:
+            return False
+
+    def exitAll(self):
+        try:
+            for i in self.roomPlayer:
+                self.exitPlayer(i)
+            return True
+        except:
+            return False
+
+
+if __name__ == '__main__':
+    t1 = threading.Thread(gameAccept()).start()
+    t1.join()
