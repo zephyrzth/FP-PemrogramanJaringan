@@ -75,6 +75,7 @@ class ClientSocket(threading.Thread):
                     time.sleep(2)
                     self.client_socket.send(str(self.gameServer.gameStatus).encode())
                 elif str(data_message.decode()) == '[quit]' and self.exitGame():
+                    self.broadcast(data_message)
                     print(f"Client {self.client_address} exiting")
                     running = False
                 else:

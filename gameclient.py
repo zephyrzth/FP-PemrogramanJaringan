@@ -194,7 +194,7 @@ class App:
         # Fungsi untuk mengenerate socket game untuk koneksi ke server
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        ip_address = '127.0.0.1'
+        ip_address = '7.222.220.216'
         port = 5000
         self.server.connect((ip_address, port))
 
@@ -214,7 +214,9 @@ class App:
                     if socks == self.server:
                         message = socks.recv(2048).decode()
                         print(message)
-                        if str(message[:App.HEADER_LENGTH]).strip() == '[game]':
+                        if str(message) == '[quit]':
+                            self.on_btn_play_again()
+                        elif str(message[:App.HEADER_LENGTH]).strip() == '[game]':
                             opponentCoordinate = eval(str(message[App.HEADER_LENGTH:]).strip())
                             if message != "[quit]":
                                 if (self.othello.isValidMove(opponentCoordinate[0], opponentCoordinate[1], True)):
