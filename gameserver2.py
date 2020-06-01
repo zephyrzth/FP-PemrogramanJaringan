@@ -159,7 +159,8 @@ class GameServer:  # Room Class
     def exitAll(self):
         try:
             for i in self.roomPlayer:
-                i.exitGame()
+                self.exitPlayer(i)
+            return True
         except:
             return False
 
