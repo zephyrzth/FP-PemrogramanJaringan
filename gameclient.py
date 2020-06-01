@@ -134,6 +134,34 @@ class App:
     def __init__(self):
         self._running = True
         self.windows = Tk()
+        self.generate_main_page()
+        # self.windows.title("Othello")
+        # self.loadImage()
+        # self.generate_socket()
+        # self.server.send("[start]".encode())
+        # playerColor = self.server.recv(2048).decode()
+        # self.othello = Othello(int(playerColor))
+        # self.makeGameFrame()
+        # self.makeChatFrame()
+        # self.create_thread()
+        # self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
+        self.windows.mainloop()
+
+    def generate_main_page(self):
+        self.windows.title("Welcome to Othello")
+        self.main_frame = Frame(self.windows)
+        self.main_frame.pack(padx=70, pady=50)
+        self.lbl_username = Label(self.main_frame, text="Enter Username:")
+        self.lbl_username.pack()
+        self.ent_username = Entry(self.main_frame)
+        self.ent_username.pack(pady=(0, 15))
+        self.btn_findmatch = Button(self.main_frame, text="Find Match", command=self.start_game)
+        self.btn_findmatch.pack(pady=(0, 5))
+        self.btn_exit = Button(self.main_frame, text="Exit", command=self.on_btn_exit)
+        self.btn_exit.pack()
+
+    def start_game(self):
+        self.main_frame.destroy()
         self.windows.title("Othello")
         self.loadImage()
         self.generate_socket()
@@ -142,10 +170,14 @@ class App:
         self.othello = Othello(int(playerColor))
         self.makeGameFrame()
         self.makeChatFrame()
+        self.makePlayAgainFrame()
         self.create_thread()
         self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
-        self.windows.mainloop()
 
+    def on_btn_exit(self):
+        self.windows.destroy()
+        exit(0)
+    
     # Bagian game
     def generate_socket(self):
         # Fungsi untuk mengenerate socket game untuk koneksi ke server
@@ -343,6 +375,7 @@ class App:
                     fg="black",
                     bg="green"
                 )
+            self.btn_play_again.pack(side=LEFT)
 
         if self.othello.turn == 1:
             turnDescription_label.configure(
@@ -487,5 +520,15 @@ class App:
         self.server.send(temp.encode())
         self.server.close()
 
+    def makePlayAgainFrame(self):
+        self.play_again_frame = Frame(self.windows)
+        self.play_again_frame.pack(fill=X)
+        self.btn_play_again = Button(self.play_again_frame, text="Play again", command=self.on_btn_play_again)
+
+    def on_btn_play_again(self):
+        self.server.send(b"[quit]")
+        for child in self.windows.winfo_children():
+            child.destroy()
+        self.generate_main_page()
 
 myApp = App()
