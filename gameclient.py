@@ -375,8 +375,9 @@ class App:
                     fg="black",
                     bg="green"
                 )
-            self.btn_play_again.pack(side=LEFT)
-            self.server.send(b"[quit]")
+            if self.play_again_frame.winfo_exists():
+                self.btn_play_again.pack(side=LEFT)
+                self.server.send(b"[quit]")
 
         if self.othello.turn == 1:
             turnDescription_label.configure(
@@ -529,6 +530,7 @@ class App:
     def on_btn_play_again(self):
         for child in self.windows.winfo_children():
             child.destroy()
+        del self.othello
         self.generate_main_page()
 
 myApp = App()
