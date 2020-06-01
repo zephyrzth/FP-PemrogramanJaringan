@@ -13,6 +13,7 @@ gameserver_socket.bind(gameserver_address)
 gameserver_socket.listen(100)
 
 
+# Thread untuk accept connection
 def gameAccept():
     running = True
     while running:
@@ -22,12 +23,7 @@ def gameAccept():
         ClientSocket(client_socket, client_address).start()
 
 
-# gameStatus List:
-# 0 exit
-# 1 play: player 1 turn
-# 2 play: player 2 turn
-# 3 finish
-
+# Class Client Socket untuk menghandle socket dari client
 class ClientSocket(threading.Thread):
     BUFFER_SIZE = 2048
     HEADER_LENGTH = 10
@@ -72,6 +68,7 @@ class ClientSocket(threading.Thread):
                 data_message = self.client_socket.recv(self.size)
                 print(str(data_message.decode()))
 
+                # Ketika client klik start game
                 if str(data_message.decode()) == '[start]' and self.joinGame():
                     print(f"Room ID: {self.gameServer.getRoomId()}, Room Player: {self.gameServer.roomPlayer}")
                     while self.gameServer.gameStatus == GameServer.CODE_GAME_PREPARING:
@@ -79,6 +76,7 @@ class ClientSocket(threading.Thread):
                         time.sleep(2)
                     time.sleep(2)
                     self.client_socket.send(str(self.gameServer.gameStatus).encode())
+                # Ketika client quit game (close / play again)
                 elif str(data_message.decode()) == '[quit]':
                     self.broadcast(data_message)
                     print(f"Client {self.client_address} exiting")
@@ -86,25 +84,27 @@ class ClientSocket(threading.Thread):
                     print("room list: " + str(GameServer.gameServerList))
                     print("player list: " + str(GameServer.allPlayerList))
                     running = False
+                # Ketika bukan keduanya akan dibroadcast
                 else:
                     self.broadcast(data_message)
             except:
                 break
 
 
-class GameServer:  # Room Class
+class GameServer:  # Class untuk room game
     gameServerList = []  # List semua room (static) : GameServer
     allPlayerList = []  # List semua pemain (static) : ClientSocket
     CODE_GAME_PREPARING = 0
     CODE_GAME_PLAYING = 1
     CODE_GAME_END = 2
-    ROOM_PLAYER_LIMIT = 2
+    ROOM_PLAYER_LIMIT = 2  # Membatasi jumlah pemain saat Join Baru
 
     def __init__(self):
         self.gameStatus = GameServer.CODE_GAME_PREPARING
         self.roomPlayer = []  # List pemain dalam room
         self.roomWinner = None
 
+    # Fungsi static untuk join client object baru ke dalam room
     @staticmethod
     def join(client_object):
         try:
@@ -128,6 +128,7 @@ class GameServer:  # Room Class
         except:
             return None
 
+    # Membroadcast ke client lain di dalam room
     def broadcast(self, client_object, data):
         try:
             for sock in self.roomPlayer:
@@ -136,18 +137,21 @@ class GameServer:  # Room Class
         except:
             return False
 
+    # Mendapatkan flag player 1 atau player 2
     def findColor(self, client_object):
         try:
             return self.roomPlayer.index(client_object) + 1
         except:
             return None
 
+    # Mendapatkan ID Room dari posisi room ini di list semua room
     def getRoomId(self):
         try:
             return GameServer.gameServerList.index(self) + 1
         except:
             return None
 
+    # Handle saat player quit
     def exitPlayer(self, client_object):
         try:
             self.roomPlayer.remove(client_object)
@@ -158,6 +162,7 @@ class GameServer:  # Room Class
         except:
             return False
 
+    # Handle untuk semua player quit
     def exitAll(self):
         try:
             for i in self.roomPlayer:
