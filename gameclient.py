@@ -11,12 +11,12 @@ from tkinter import *
 # array dengan value 2 terisi dengan bidak putih
 
 class Othello:
-    board = [[0 for i in range(8)] for j in range(8)]
-    # Variabel untuk menghitung jumlah player yang gabisa gerak
-    cantMove = 0
-
+    
     def __init__(self, playerColor):
         # kondisi pertama kali permainan
+        self.board = [[0 for i in range(8)] for j in range(8)]
+        # Variabel untuk menghitung jumlah player yang gabisa gerak
+        self.cantMove = 0
         # 2 bidak putih dan 2 bidak hitam saling bersilangan di tengah
         self.board[4][3] = self.board[3][4] = 1
         self.board[3][3] = self.board[4][4] = 2
