@@ -58,6 +58,11 @@ class ClientSocket(threading.Thread):
             return True
         return False
 
+    def exitAll(self):
+        if self.gameServer.exitAll():
+            return True
+        return False
+
     def run(self):
         running = True
         while running:
@@ -74,9 +79,10 @@ class ClientSocket(threading.Thread):
                         time.sleep(2)
                     time.sleep(2)
                     self.client_socket.send(str(self.gameServer.gameStatus).encode())
-                elif str(data_message.decode()) == '[quit]' and self.exitGame():
+                elif str(data_message.decode()) == '[quit]':
                     self.broadcast(data_message)
                     print(f"Client {self.client_address} exiting")
+                    self.exitAll()
                     running = False
                 else:
                     self.broadcast(data_message)
@@ -147,6 +153,13 @@ class GameServer:  # Room Class
             if len(self.roomPlayer) < 1:
                 GameServer.gameServerList.remove(self)
             return True
+        except:
+            return False
+
+    def exitAll(self):
+        try:
+            for i in self.roomPlayer:
+                i.exitGame()
         except:
             return False
 
