@@ -1,7 +1,6 @@
 import socket
 import select
 import sys
-import msvcrt
 from threading import Thread
 from tkinter import *
 
@@ -135,19 +134,10 @@ class App:
         self._running = True
         self.windows = Tk()
         self.generate_main_page()
-        # self.windows.title("Othello")
-        # self.loadImage()
-        # self.generate_socket()
-        # self.server.send("[start]".encode())
-        # playerColor = self.server.recv(2048).decode()
-        # self.othello = Othello(int(playerColor))
-        # self.makeGameFrame()
-        # self.makeChatFrame()
-        # self.create_thread()
-        # self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
         self.windows.mainloop()
 
     def generate_main_page(self):
+        # Fungsi untuk membuat gui main menu
         self.windows.title("Welcome to Othello")
         self.main_frame = Frame(self.windows)
         self.main_frame.pack(padx=70, pady=50)
@@ -162,6 +152,7 @@ class App:
         self.btn_exit.pack()
 
     def start_game(self):
+        # Fungsi untuk menghandle start game ketika tombol Find Match ditekan
         self.username = self.var_username.get()
         self.main_frame.destroy()
         self.windows.title("Othello")
@@ -184,6 +175,7 @@ class App:
         self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
     
     def waitingForOpponent(self):
+        # Fungsi untuk menampilkan popup window pada saat menunggu ada lawan yang masuk room
         self.waiting_window = Toplevel()
         self.waiting_window.title("Searching")
         self.lbl_waiting = Label(self.waiting_window, text="Searching for opponent. . .")
@@ -192,9 +184,11 @@ class App:
         self.waiting_window.lift(self.windows)
     
     def on_btn_exit(self):
+        # Fungsi untuk close aplikasi ketika berada pada main menu
+        self._running = False
         self.windows.destroy()
-        exit(0)
-    
+        self.server.close()
+
     # Bagian game
     def generate_socket(self):
         # Fungsi untuk mengenerate socket game untuk koneksi ke server
@@ -465,27 +459,24 @@ class App:
         # Fungsi untuk menghandle ketika user menghover papan permainan bagian yang sudah terisi bidak
         self.helperLabel.configure(image=self.NONE_BOARD_IMAGE)
 
+    # Bagian chat
     def makeChatFrame(self):
         # Fungsi untuk membuat frame dari chat othello
         self.topframe = Frame(self.windows)
         self.topframe.pack()
         self.bottomframe = Frame(self.windows)
         self.bottomframe.pack()
-
         self.chat_box()
         self.input_box()
 
     def chat_box(self):
         # Fungsi untuk membuat gui bagian list chat box
         frame = self.topframe
-
         Label(frame, text='Chat:', font=("Serif", 12)).pack(side='top', anchor='w')
         self.msg_list = Listbox(frame, height=20, width=50)
-
         self.msg_list.pack(side=LEFT, fill=BOTH)
         self.msg_list.pack()
         scrollbar = Scrollbar(frame, orient=VERTICAL, command=self.msg_list.yview)
-
         self.msg_list.configure(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.msg_list.yview)
         scrollbar.pack(side=RIGHT, fill=Y)
@@ -521,10 +512,8 @@ class App:
         frame = self.bottomframe
         self.messages = StringVar()
         self.entry_field = Entry(frame, textvariable=self.messages, width=40, fg='black')
-
         self.entry_field.bind('<FocusOut>', self.foc_out)
         self.entry_field.bind('<FocusIn>', self.clear_box)
-
         self.entry_field.bind("<Return>", self.send_message)
         self.placeholder()
         self.entry_field.grid(row=1, column=1)
@@ -532,7 +521,7 @@ class App:
         self.send_button.grid(row=1, column=2)
 
     def on_close(self):
-        # Fungsi untuk menghandle ketika aplikasi client diclose
+        # Fungsi untuk menghandle ketika aplikasi client diclose dengan mengklik tombol x
         self._running = False
         self.windows.destroy()
         temp = '[quit]'
@@ -540,11 +529,13 @@ class App:
         self.server.close()
 
     def makePlayAgainFrame(self):
+        # Fungsi untuk memunculkan tombol play again ketika game berakhir
         self.play_again_frame = Frame(self.windows)
         self.play_again_frame.pack(fill=X)
         self.btn_play_again = Button(self.play_again_frame, text="Play again", command=self.on_btn_play_again)
 
     def on_btn_play_again(self):
+        # Fungsi untuk menghandle ketika tombol play again ditekan
         for child in self.windows.winfo_children():
             child.destroy()
         del self.othello
