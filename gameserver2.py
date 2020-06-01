@@ -68,6 +68,9 @@ class ClientSocket(threading.Thread):
 
                 if str(data_message.decode()) == '[start]' and self.joinGame():
                     print(f"Room ID: {self.gameServer.getRoomId()}, Room Player: {self.gameServer.roomPlayer}")
+                    while self.gameServer.gameStatus == GameServer.CODE_GAME_PREPARING:
+                        self.client_socket.send(str(self.gameServer.gameStatus).encode())
+                    self.client_socket.send(str(self.gameServer.gameStatus).encode())
                 elif str(data_message.decode()) == '[quit]' and self.exitGame():
                     print(f"Client {self.client_address} exiting")
                     running = False
@@ -98,6 +101,7 @@ class GameServer:  # Room Class
             for i in GameServer.gameServerList:
                 if len(i.roomPlayer) < GameServer.ROOM_PLAYER_LIMIT:
                     i.roomPlayer.append(client_object)
+                    i.gameStatus = GameServer.CODE_GAME_PLAYING
                     roomFound = i
                     notFound = False
                     break
