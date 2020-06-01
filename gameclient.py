@@ -153,7 +153,8 @@ class App:
         self.main_frame.pack(padx=70, pady=50)
         self.lbl_username = Label(self.main_frame, text="Enter Username:")
         self.lbl_username.pack()
-        self.ent_username = Entry(self.main_frame)
+        self.var_username = StringVar()
+        self.ent_username = Entry(self.main_frame, textvariable=self.var_username)
         self.ent_username.pack(pady=(0, 15))
         self.btn_findmatch = Button(self.main_frame, text="Find Match", command=self.start_game)
         self.btn_findmatch.pack(pady=(0, 5))
@@ -161,6 +162,7 @@ class App:
         self.btn_exit.pack()
 
     def start_game(self):
+        self.username = self.var_username.get()
         self.main_frame.destroy()
         self.windows.title("Othello")
         self.loadImage()
@@ -478,8 +480,8 @@ class App:
         msg = self.messages.get()
         self.messages.set("")  # Clears input field.
         if msg:
-            self.msg_list.insert(END, "<You> " + msg)
-            msg = "<opponent> " + str(msg)
+            self.msg_list.insert(END, "<" + self.username + "> " + msg)
+            msg = "<" + self.username + "> " + str(msg)
             send_message = bytes(f"{'[chat]':<{App.HEADER_LENGTH}}", 'utf-8') + msg.encode()
             self.server.send(send_message)
 
