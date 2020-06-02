@@ -36,6 +36,7 @@ class ClientSocket(threading.Thread):
         self.gameServer = None
         self.gameColor = None
 
+    # Handle saat player join game di objek client socket dan di objek game server
     def joinGame(self):
         self.gameServer = GameServer.join(self)
         self.gameColor = self.gameServer.findColor(self)
@@ -45,15 +46,18 @@ class ClientSocket(threading.Thread):
             return True
         return False
 
+    # Memanggil fungsi broadcast di game server
     def broadcast(self, data):
         return True if self.gameServer.broadcast(self, data) else False
 
+    # Fungsi untuk handle 1 client saja yang exit (client sekarang)
     def exitGame(self):
         if self.gameServer.exitPlayer(self):
             self.gameServer = None
             return True
         return False
 
+    # Fungsi untuk handle untuk mengeluarkan semua client dari room player di dalam room
     def exitAll(self):
         if self.gameServer.exitAll():
             return True
