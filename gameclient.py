@@ -156,25 +156,26 @@ class App:
     def start_game(self):
         # Fungsi untuk menghandle start game ketika tombol Find Match ditekan
         self.username = self.var_username.get()
-        self.main_frame.destroy()
-        self.windows.title("Othello")
-        self.loadImage()
-        self.generate_socket()
-        self._running = True
-        self.server.send("[start]".encode())
-        playerColor = self.server.recv(2048).decode()
-        self.waitingForOpponent()
-        data = self.server.recv(1)
-        print(data)
-        while data == b"0":
+        if self.username:
+            self.main_frame.destroy()
+            self.windows.title("Othello")
+            self.loadImage()
+            self.generate_socket()
+            self._running = True
+            self.server.send("[start]".encode())
+            playerColor = self.server.recv(2048).decode()
+            self.waitingForOpponent()
             data = self.server.recv(1)
-        self.othello = Othello(int(playerColor))
-        self.waiting_window.destroy()
-        self.makeGameFrame()
-        self.makeChatFrame()
-        self.makePlayAgainFrame()
-        self.create_thread()
-        self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
+            print(data)
+            while data == b"0":
+                data = self.server.recv(1)
+            self.othello = Othello(int(playerColor))
+            self.waiting_window.destroy()
+            self.makeGameFrame()
+            self.makeChatFrame()
+            self.makePlayAgainFrame()
+            self.create_thread()
+            self.windows.protocol("WM_DELETE_WINDOW", self.on_close)
     
     def waitingForOpponent(self):
         # Fungsi untuk menampilkan popup window pada saat menunggu ada lawan yang masuk room
